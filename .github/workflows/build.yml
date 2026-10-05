@@ -13,7 +13,9 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Unzip Source Code
-      run: unzip *.zip -d ProjectFolder
+      run: |
+        mkdir -p app_source
+        unzip -q -o *.zip -d app_source
 
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -21,16 +23,19 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Build APK
+    - name: Build APK (Smart Fallback)
       run: |
-        cd ProjectFolder
-        DIR=$(dirname $(find . -name "gradlew" | head -n 1))
-        cd $DIR
-        chmod +x gradlew
-        ./gradlew assembleDebug
+        cd app_source
+        # प्रोजेक्ट के मेन फोल्डर को ढूँढना
+        PROJECT_DIR=$(dirname $(find . -name "settings.gradle*" | head -n 1))
+        cd "$PROJECT_DIR"
+        
+        # मिसिंग फाइल की जगह डायरेक्ट सिस्टम Gradle का इस्तेमाल करना
+        gradle assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Shanaya-App-APK
-        path: ProjectFolder/**/*.apk
+        path: "**/*.apk"
+
