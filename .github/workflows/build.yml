@@ -1,0 +1,36 @@
+name: Build Shanaya APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Unzip Source Code
+      run: unzip *.zip -d ProjectFolder
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Build APK
+      run: |
+        cd ProjectFolder
+        DIR=$(dirname $(find . -name "gradlew" | head -n 1))
+        cd $DIR
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Shanaya-App-APK
+        path: ProjectFolder/**/*.apk
